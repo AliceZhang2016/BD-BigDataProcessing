@@ -9,7 +9,8 @@ using namespace std;
 /**
 definition of functions for follower server
 **/
-class Follower{
+class Follower: public ConnectionBase
+{
 public:
 	Follower(std::string serverAddr);
 	~Follower();

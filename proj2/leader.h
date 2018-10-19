@@ -9,7 +9,8 @@ using namespace std;
 /**
 definition of functions for follower server
 **/
-class Leader{
+class Leader: public ConnectionBase
+{
 public:
 	Leader(std::string serverAddr);
 	~Leader();

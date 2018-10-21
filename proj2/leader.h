@@ -12,7 +12,7 @@ definition of functions for follower server
 class Leader: public ConnectionBase
 {
 public:
-	Leader(std::string serverAddr);
+	Leader(std::string followerAddr[], int follower_num);
 	~Leader();
 	void updateMap();
 	void sendUpdateCommand(); // maybe use broadcast
@@ -23,4 +23,5 @@ private:
 	// all the follower servers which have a connection
 	// with this leader server
 	std::string followersAddr[100]; 
+	int follower_num;
 }

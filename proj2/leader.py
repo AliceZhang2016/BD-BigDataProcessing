@@ -37,7 +37,7 @@ class Leader():
 
 					flag = self.check(lock_name, client_id)
 					# "action lock_name client_id status"
-					if flag == 0 && flag == 1:
+					if flag == 0 or flag == 1:
 						# The lock exists but doesn't belong to the client, please wait and try again.
 						# The lock exists and already belongs to the client.
 						conn.sendall(bytes(request[0] + " " + request[1] + " " request[2] + " 0"))
@@ -46,7 +46,7 @@ class Leader():
 						# "PREEMPT": The lock has changed and now belongs to the client.
 						# "RELEASE": The lock has released.
 						self.sendUpdateCommand(request) # send a broadcast to all followers
-				elif len(request) == 2 && request[0] == "UPDATEMAP":
+				elif len(request) == 2 and request[0] == "UPDATEMAP":
 					request_ver = int(request[1])
 					if self.map_ver != request_ver:
 						conn.sendall(bytes(request[0] + " " + str(self.map_ver) + " " + str(self.lock_map)))

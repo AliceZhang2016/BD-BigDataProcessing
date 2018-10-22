@@ -9,13 +9,14 @@ class Leader():
 		self.follower_addr = follower_addr
 		self.broad_dest = ('<broadcast>', 7788) # broad socket fd
 		self.lock_map = {}
+		self.map_ver = 0
 		self.listenFollower()
 		self.dealRequest()
 
 	def listenFollower(self):
 		self.sk = [] # all sockets where each corresponds to a follower leader
 		for i in range(len(follower_addr)):
-			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			s = socket.socket(socket.AF_INET, socket.DGRAM)
 			s.bind(*follower_addr[i])
 			s.listen(1) # backlog(here 1) is the maximum number of queued connections
 			self.sk.append(s)
@@ -27,26 +28,33 @@ class Leader():
 			r_list, w_list, e_list = select(self.sk, [], [], 1)
 			for s in r_list:
 				conn, addr = s.accept()
-				data = conn.recv(1024) # data is of type "action lock_name client_id" (e.g. "preempt/release lock1 23")
+				data = conn.recv(1024) # data is of type "action lock_name client_id" (e.g. "PREEMPT/RELEASE lock1 23", "UPDATEMAP 2")
 				request = data.split(' ')
-				if len(request) != 2:
-					raise ValueError
-				action = request[0]
-				lock_name = request[1]
-				client_id = int(request[2])
+				if len(request) == 3:
+					action = request[0]
+					lock_name = request[1]
+					client_id = int(request[2])
 
-				flag = self.check(lock_name, client_id)
-				if flag == 0:
-					conn.sendall(bytes("The lock exists but doesn't belong to the client, please wait and try again."))
-				elif flag == 1:
-					conn.sendall(bytes("The lock exists and already belongs to the client."))
-				elif flag == 2:
-					self.updateMap(action, lock_name, client_id)
-					if action == "preempt":
-						conn.sendall(bytes("The lock has changed and now belongs to the client."))
-					elif action == "release":
-						conn.sendall(bytes("The lock has released."))
-					self.sendUpdateCommand(data) # send a broadcast to all followers
+					flag = self.check(lock_name, client_id)
+					# "action lock_name client_id status"
+					if flag == 0 && flag == 1:
+						# The lock exists but doesn't belong to the client, please wait and try again.
+						# The lock exists and already belongs to the client.
+						conn.sendall(bytes(request[0] + " " + request[1] + " " request[2] + " 0"))
+					elif flag == 2:
+						self.updateMap(action, lock_name, client_id)
+						# "PREEMPT": The lock has changed and now belongs to the client.
+						# "RELEASE": The lock has released.
+						self.sendUpdateCommand(request) # send a broadcast to all followers
+				elif len(request) == 2 && request[0] == "UPDATEMAP":
+					request_ver = int(request[1])
+					if self.map_ver != request_ver:
+						conn.sendall(bytes(request[0] + " " + str(self.map_ver) + " " + str(self.lock_map)))
+					else:
+						# Your lock map is already up-to-date.
+						conn.sendall(bytes(request[0] + " " + str(self.map_ver) + " Yes"))
+				else:
+					raise ValueError
 
 				conn.close()
 
@@ -60,11 +68,12 @@ class Leader():
 			return 2
 
 	def updateMap(self, action, lock_name, client_id):
-		if action == "preempt":
+		if action == "PREEMPT":
 			self.lock_map[lock_name] = client_id
-		elif action == "release":
+		elif action == "RELEASE":
 			del self.lock_map[lock_name]
+		self.map_ver += 1
 
-	def sendUpdateCommand(self, data):
-		self.broad_sk.sendto(bytes(data), self.broad_dest)
+	def sendUpdateCommand(self, request):
+		self.broad_sk.sendto(bytes(request[0] + " " request[1] + " " request[2] + " 1"), self.broad_dest)
 

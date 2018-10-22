@@ -27,21 +27,25 @@ class Leader():
 			r_list, w_list, e_list = select(self.sk, [], [], 1)
 			for s in r_list:
 				conn, addr = s.accept()
-				data = conn.recv(1024) # data is of type "lock_name client_id" (e.g. "lock1, 23")
+				data = conn.recv(1024) # data is of type "action lock_name client_id" (e.g. "preempt/release lock1 23")
 				request = data.split(' ')
 				if len(request) != 2:
 					raise ValueError
-				lock_name = request[0]
-				client_id = int(request[1])
+				action = request[0]
+				lock_name = request[1]
+				client_id = int(request[2])
 
 				flag = self.check(lock_name, client_id)
 				if flag == 0:
-					conn.sendall(bytes("The lock exists but doesn't belongs to the client, please wait and try again."))
+					conn.sendall(bytes("The lock exists but doesn't belong to the client, please wait and try again."))
 				elif flag == 1:
 					conn.sendall(bytes("The lock exists and already belongs to the client."))
 				elif flag == 2:
-					self.updateMap(lock_name, client_id)
-					conn.sendall(bytes("The lock has changed and now belongs to the client."))
+					self.updateMap(action, lock_name, client_id)
+					if action == "preempt":
+						conn.sendall(bytes("The lock has changed and now belongs to the client."))
+					elif action == "release":
+						conn.sendall(bytes("The lock has released."))
 					self.sendUpdateCommand(data) # send a broadcast to all followers
 
 				conn.close()
@@ -50,13 +54,16 @@ class Leader():
 	# return value: 0(lock exist && not belong to this client)
 	#               1(lock exist && belong to this client)
 	#               2(lock not exist -> lock and update map)
-		if lock_name in self.lock_map[ ].keys():
+		if lock_name in self.lock_map.keys():
 			return self.lock_map[lock_name] == client_id
 		else:
 			return 2
 
-	def updateMap(self, lock_name, client_id):
-		self.lock_map[lock_name] = client_id
+	def updateMap(self, action, lock_name, client_id):
+		if action == "preempt":
+			self.lock_map[lock_name] = client_id
+		elif action == "release":
+			del self.lock_map[lock_name]
 
 	def sendUpdateCommand(self, data):
 		self.broad_sk.sendto(bytes(data), self.broad_dest)

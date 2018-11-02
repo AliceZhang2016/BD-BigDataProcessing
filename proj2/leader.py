@@ -64,6 +64,7 @@ class Leader():
 					self.s.sendto(bytes(request[0] + " " + str(self.map_ver) + " " + str(self.lock_map), 'utf-8'), address)
 					print("[send data]", request[0] + " " + str(self.map_ver) + " " + str(self.lock_map))
 					# conn.sendall(bytes(request[0] + " " + str(self.map_ver) + " " + str(self.lock_map)))
+
 				else:
 					# Your lock map is already up-to-date.
 					self.s.sendto(bytes(request[0] + " " + str(self.map_ver) + " Yes", 'utf-8'), address)

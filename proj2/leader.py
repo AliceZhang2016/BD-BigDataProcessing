@@ -33,10 +33,9 @@ class Leader():
 				# data = conn.recv(1024) # data is of type "action lock_name client_id" (e.g. "PREEMPT/RELEASE lock1 23", "UPDATEMAP 2")
 			data, address = self.s.recvfrom(1024)
 			data = data.decode('utf-8')
-			print("data", data)
-			print("address", address)
 			request = data.split(' ')
-			print("request", request)
+			print("\n===========================\n")
+			print("[request]", data)
 			if len(request) == 3:
 				action = request[0]
 				lock_name = request[1]
@@ -48,12 +47,12 @@ class Leader():
 				if flag == 0:
 					# The lock exists but doesn't belong to the client, please wait and try again.
 					# The lock exists and already belongs to the client.
-					print("Failure")
+					print("*** Request failure ***")
 					self.s.sendto(bytes(request[0] + " " + request[1] + " " + request[2] + " 0", 'utf-8'), address)
 					print("[send data]", request[0] + " " + request[1] + " " + request[2] + " 0")
 					# conn.sendall(bytes(request[0] + " " + request[1] + " " request[2] + " 0"))
 				elif flag == 1:
-					print("Success")
+					print("*** Request success ***")
 					self.updateMap(action, lock_name, client_id)
 					# "PREEMPT": The lock has changed and now belongs to the client.
 					# "RELEASE": The lock has released.
@@ -61,12 +60,14 @@ class Leader():
 			elif len(request) == 2 and request[0] == "UPDATEMAP":
 				request_ver = int(request[1])
 				if self.map_ver != request_ver:
+					print("*** Inconsistent map ***")
 					self.s.sendto(bytes(request[0] + " " + str(self.map_ver) + " " + str(self.lock_map), 'utf-8'), address)
 					print("[send data]", request[0] + " " + str(self.map_ver) + " " + str(self.lock_map))
 					# conn.sendall(bytes(request[0] + " " + str(self.map_ver) + " " + str(self.lock_map)))
 
 				else:
 					# Your lock map is already up-to-date.
+					print("*** Consistent map ***")
 					self.s.sendto(bytes(request[0] + " " + str(self.map_ver) + " Yes", 'utf-8'), address)
 					print("[send data]", request[0] + " " + str(self.map_ver) + " Yes")
 					# conn.sendall(bytes(request[0] + " " + str(self.map_ver) + " Yes"))
@@ -95,7 +96,7 @@ class Leader():
 		elif action == "RELEASE":
 			self.lock_map[lock_name] = None
 		self.map_ver += 1
-		print("[update map] lock_name: ", lock_name, "; value: ", self.lock_map[lock_name])
+		print("[update map] lock_name:", lock_name, "; value:", self.lock_map[lock_name])
 
 	def sendUpdateCommand(self, request):
 		# self.broad_sk.sendto(bytes(request[0] + " " + request[1] + " " + request[2] + " 1"), self.broad_dest)

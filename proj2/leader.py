@@ -47,15 +47,15 @@ class Leader():
 					self.sendUpdateCommand(request) # send a broadcast to all followers
 			elif len(request) == 2 and request[0] == "UPDATEMAP":
 				request_ver = int(request[1])
-				if self.map_ver != request_ver:
-					print("*** Inconsistent map ***")
-					self.s.sendto(bytes(request[0] + " " + str(self.map_ver) + " " + str(self.lock_map), 'utf-8'), address)
-					print("[send data]", request[0] + " " + str(self.map_ver) + " " + str(self.lock_map))
-				else:
+				if self.checkMap(request_ver): # self.map_ver != request_ver:
 					# Your lock map is already up-to-date.
 					print("*** Consistent map ***")
 					self.s.sendto(bytes(request[0] + " " + str(self.map_ver) + " Yes", 'utf-8'), address)
 					print("[send data]", request[0] + " " + str(self.map_ver) + " Yes")
+				else:
+					print("*** Inconsistent map ***")
+					self.s.sendto(bytes(request[0] + " " + str(self.map_ver) + " " + str(self.lock_map), 'utf-8'), address)
+					print("[send data]", request[0] + " " + str(self.map_ver) + " " + str(self.lock_map))
 			else:
 				raise ValueError
 
@@ -80,6 +80,9 @@ class Leader():
 			self.lock_map[lock_name] = None
 		self.map_ver += 1
 		print("[update map] lock_name:", lock_name, "; value:", self.lock_map[lock_name])
+
+	def checkMap(self, request_ver):
+		return request_ver == self.map_ver
 
 	def sendUpdateCommand(self, request):
 		for addr in self.follower_addr:

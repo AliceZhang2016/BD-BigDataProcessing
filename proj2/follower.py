@@ -41,12 +41,12 @@ class Follower():
         # to server to get the newest version
         #self.update_times = 3 
 
-        self.timeout_preept = 50
-        self.success_preept = {}
-        #self.success_preept = False
-        self.preept_status = {}
-        #self.preept_status = 0  # preept fail
-        self.preept_times = 3 # if timeout, resend for <update_times>-1
+        self.timeout_preempt = 50
+        self.success_preempt = {}
+        #self.success_preempt = False
+        self.preempt_status = {}
+        #self.preempt_status = 0  # preempt fail
+        self.preempt_times = 3 # if timeout, resend for <update_times>-1
 
         self.timeout_release = 50
         self.success_release = {}
@@ -79,7 +79,7 @@ class Follower():
             #print(l)
             
             action = recvData.split()[0]
-            print(action)
+            #print(action)
 
             if action == "UPDATEMAP": # daily update or update command from server
                 all_msg = recvData.split(' ',2)
@@ -93,14 +93,14 @@ class Follower():
                     self.version = int(leader_version)
                     self.lockmap = eval(details)
 
-                print("===== update from server =====")
+                print("===== local lockmap (update from server) =====")
                 print(self.lockmap)
                 print(self.version)
                 #print("==============================")
                 
             elif action == "PREEMPT":  
-                # all_msg: PREEMPT <key_name> <UUID> 1  (success preept)
-                # all_msg: PREEMPT <key_name> <UUID> 0  (fail preept)
+                # all_msg: PREEMPT <key_name> <UUID> 1  (success preempt)
+                # all_msg: PREEMPT <key_name> <UUID> 0  (fail preempt)
                 all_msg = recvData.split(' ')
                 l = len(all_msg)
 
@@ -111,15 +111,15 @@ class Follower():
                 key_name = all_msg[1]
                 client_UUID = all_msg[2]
                 self.lockmap[key_name] = client_UUID
-                self.preept_status[client_UUID] = int(all_msg[-1])
-                print("------TEST------")
-                print(client_UUID)
-                print(self.preept_status)
-                if self.preept_status[client_UUID] == 1:
+                self.preempt_status[client_UUID] = int(all_msg[-1])
+                #print("------TEST------")
+                #print(client_UUID)
+                #print(self.preempt_status)
+                if self.preempt_status[client_UUID] == 1:
                     self.version += 1
-                self.success_preept[client_UUID] = True
+                self.success_preempt[client_UUID] = True
 
-                print("===== preempt from server =====")
+                print("===== local lockmap (preempt from server) =====")
                 print(self.lockmap)
                 #print("==============================")
 
@@ -138,7 +138,7 @@ class Follower():
                     self.version += 1
                 self.success_release[client_UUID] = True
 
-                print("===== release from server =====")
+                print("===== local lockmap (release from server) =====")
                 print(self.lockmap)
                 #print("==============================")
 
@@ -157,7 +157,7 @@ class Follower():
         while (1): 
             send_msg = "UPDATEMAP " + str(self.version)
             print(self.server_addr)
-            sendDataLen = self.s_leader.sendto(bytes(send_msg+'\n',"utf-8"), self.server_addr)
+            sendDataLen = self.s_leader.sendto(bytes(send_msg,"utf-8"), self.server_addr)
             print(sendDataLen)
             print("send to server: ", send_msg)
             current_time = time.time()
@@ -210,7 +210,7 @@ class Follower():
                 self.identifier = str(action)+ ' ' + str(addr) + ' ' + str(key_name)
             '''
             
-            print(action)
+            #print(action)
             if action == "CHECKSTATUS":
                 print("a1")
                 if self.lockmap[key_name] == UUID: # own the key
@@ -221,8 +221,8 @@ class Follower():
                     print("send to client: ", "0")
             
             elif action == "PREEMPT":
-                self.success_preept[UUID] = False
-                self.preept_status[UUID] = 0 
+                self.success_preempt[UUID] = False
+                self.preempt_status[UUID] = 0 
                 # msg sent to server: PREEMPT key_name UUID
                 send_msg = "PREEMPT"+' '+str(key_name) + ' ' + UUID
                 self.s_leader.sendto(bytes(send_msg,"utf-8"), self.server_addr)
@@ -231,20 +231,20 @@ class Follower():
                 send_times = 1
 
                 # exit the circulation when 1. get response 2.arrive the resend times
-                while (not self.success_preept[UUID]) and send_times<self.preept_times:
-                    if current_time-time.time()>self.timeout_preept:
+                while (not self.success_preempt[UUID]) and send_times<self.preempt_times:
+                    if current_time-time.time()>self.timeout_preempt:
                         sendDataLen = self.s_leader.sendto(bytes(send_msg,"utf-8"), self.server_addr)
                         print("send to server: ", send_msg)
                         send_timems += 1
                         current_time = time.time()
 
-                print("success_preept: ", self.success_preept[UUID])
-                if self.success_preept[UUID]: # get msg from server successfully
-                    s.sendto(bytes(str(int(self.preept_status[UUID])),"utf-8"), addr)
-                    print("send to client: ", str(int(self.preept_status[UUID])))
-                    #self.success_preept[UUID] = False
-                    del self.success_preept[UUID]
-                    del self.preept_status[UUID]
+                print("success_preempt: ", self.success_preempt[UUID])
+                if self.success_preempt[UUID]: # get msg from server successfully
+                    s.sendto(bytes(str(int(self.preempt_status[UUID])),"utf-8"), addr)
+                    print("send to client: ", str(int(self.preempt_status[UUID])))
+                    #self.success_preempt[UUID] = False
+                    del self.success_preempt[UUID]
+                    del self.preempt_status[UUID]
                 else: # not get response msg from server, just timeout and after resending several msgs
                     s.sendto(bytes("0","utf-8"), addr) 
                     print("send to client: ", "0")

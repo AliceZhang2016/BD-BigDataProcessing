@@ -79,7 +79,7 @@ class Follower():
             #print(l)
             
             action = recvData.split()[0]
-            #print(action)
+            print(action)
 
             if action == "UPDATEMAP": # daily update or update command from server
                 all_msg = recvData.split(' ',2)
@@ -93,7 +93,7 @@ class Follower():
                     self.version = int(leader_version)
                     self.lockmap = eval(details)
 
-                print("===== local lockmap (update from server) =====")
+                print("===== update from server =====")
                 print(self.lockmap)
                 print(self.version)
                 #print("==============================")
@@ -112,14 +112,14 @@ class Follower():
                 client_UUID = all_msg[2]
                 self.lockmap[key_name] = client_UUID
                 self.preempt_status[client_UUID] = int(all_msg[-1])
-                #print("------TEST------")
-                #print(client_UUID)
-                #print(self.preempt_status)
+                print("------TEST------")
+                print(client_UUID)
+                print(self.preempt_status)
                 if self.preempt_status[client_UUID] == 1:
                     self.version += 1
                 self.success_preempt[client_UUID] = True
 
-                print("===== local lockmap (preempt from server) =====")
+                print("===== preempt from server =====")
                 print(self.lockmap)
                 #print("==============================")
 
@@ -138,7 +138,7 @@ class Follower():
                     self.version += 1
                 self.success_release[client_UUID] = True
 
-                print("===== local lockmap (release from server) =====")
+                print("===== release from server =====")
                 print(self.lockmap)
                 #print("==============================")
 
@@ -210,7 +210,7 @@ class Follower():
                 self.identifier = str(action)+ ' ' + str(addr) + ' ' + str(key_name)
             '''
             
-            #print(action)
+            print(action)
             if action == "CHECKSTATUS":
                 print("a1")
                 if self.lockmap[key_name] == UUID: # own the key

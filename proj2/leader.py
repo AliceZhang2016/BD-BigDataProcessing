@@ -92,7 +92,7 @@ class Leader():
 
 if __name__ == '__main__':
 
-	follower_addr = [('192.168.1.187', 12303), ('192.168.1.159', 12303)]
+	follower_addr = [('192.168.1.187', 12303)]#, ('192.168.1.159', 12303)]
 	server = Leader(follower_addr)
 	server.listenFollower()
 	server.dealRequest()

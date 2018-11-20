@@ -65,12 +65,14 @@ class NameServer:
 					idx = np.argsort(serverSize)
 					self.idCnt += 1
 					for i in range(numReplicate):
+						self.dataServers[idx[i]].cv.acquire()
 						self.meta[param[2]] = (self.idCnt, totalSize)
 						self.dataServers[idx[i]].cmd = "put"
 						self.dataServers[idx[i]].fid = idCnt
 						self.dataServers[idx[i]].bufSize = totalSize
 						self.dataServers[idx[i]].buf = buf
 						self.dataServers[idx[i]].finish = False
+						self.dataServers[idx[i]].cv.release()
 						self.dataServers[idx[i]].cv.notify_all()
 				f.close()
 			# fetch file from miniDFS
@@ -84,13 +86,14 @@ class NameServer:
 						print("error: no such file in miniDFS.")
 						continue
 					for i in range(4):
-						self.dataServers.cmd = param[0]
+						self.dataServers[i].cv.acquire()
+						self.dataServers[i].cmd = param[0]
 						if param[0] == "read":
 							self.dataServers[i].fid, self.dataServers[i].bufSize = meta[param[1]]
 						else:
 							self.dataServers[i].fid, self.dataServers[i].bufSize = int(param[1]), int(param[2])
-
 						self.dataServers[i].finish = False
+						self.dataServers[i].cv.release()
 						self.dataServers[i].cv.notify_all()
 			# locate the data server given file ID and Offset.
 			elif param == "locate":
@@ -99,21 +102,24 @@ class NameServer:
 					continue
 				else:
 					for i in range(4):
+						self.dataServers[i].cv.acquire()
 						self.dataServers[i].cmd = "locate"
 						self.dataServers[i].fid = int(param[1])
 						self.dataServers[i].offset = int(param[2])
 						self.dataServers[i].finish = False
-						self.dataServers.cv.notify_all()
+						self.dataServers[i].cv.release()
+						self.dataServers[i].cv.notify_all()
 			else:
 				print("wrong command.")
 
 
 			# waiting for the finish of data server.
 			for server in self.dataServers:
-				while True:
-					while not server.finish:
-						server.cv.wait()
-					server.cv.notify_all()
+				server.cv.acquire()
+				while not server.finish:
+					server.cv.wait()
+				server.cv.release()
+				server.cv.notify_all()
 
 
 			# work after processing of data server

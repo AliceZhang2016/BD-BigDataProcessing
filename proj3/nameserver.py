@@ -1,3 +1,4 @@
+from filetree import FileTree
 import numpy as np
 import os
 import threading
@@ -6,9 +7,9 @@ import hashlib
 class NameServer:
 
 
-	def __init__(self, dataServers, fileTree, numReplicate=3, idCnt=0):
-		self.dataServers = dataServers
-		self.fileTree = fileTree
+	def __init__(self, numReplicate=3, idCnt=0):
+		self.dataServers = []
+		self.fileTree = FileTree()
 		self.meta = {}
 		self.numReplicate = numReplicate
 		self.idCnt= idCnt
@@ -19,7 +20,7 @@ class NameServer:
 
 
 	def parse_cmd(self):
-		cmd = raw_input("MiniDFS> ")
+		cmd = input("MiniDFS> ")
 		parameters = cmd.split(' ')
 		return parameters
 
@@ -32,21 +33,21 @@ class NameServer:
 				print("input a blank line")
 				continue
 
-			if param[0] == "quit":
+			if param[0] == "quit" or param[0] == "exit":
 				print("quit")
 				break
 			# list all the files in name server.
 			elif param[0] == "list" or param[0] == "ls":
 				if l != 1:
-					print("useage: list (list all the files in name server)")
+					print("usage: list (list all the files in name server)")
 				else:
 					print("file\tFileID\tChunkNumber")
-					self.fileTree.list(self.meta)
+					self.fileTree.list_(self.meta)
 				continue
 			# upload file to miniDFS
 			elif param[0] == "put":
 				if l != 3:
-					print("useage: put source_file_path des_file_path")
+					print("usage: put source_file_path des_file_path")
 					continue
 				try:
 					f = open(param[1], 'rb')
@@ -75,8 +76,8 @@ class NameServer:
 			# fetch file from miniDFS
 			elif param[0] == "read" or param[0] == "fetch":
 				if l != 3 and l != 4:
-					print("useage: read source_file_path dest_file_path")
-					print("useage: fetch FileID Offset dest_file_path")
+					print("usage: read source_file_path dest_file_path")
+					print("usage: fetch FileID Offset dest_file_path")
 					continue
 				else:
 					if param[0] == "read" and param[1] not in self.meta:
@@ -94,7 +95,7 @@ class NameServer:
 			# locate the data server given file ID and Offset.
 			elif param == "locate":
 				if l != 3:
-					print("useage: locate fileID Offset")
+					print("usage: locate fileID Offset")
 					continue
 				else:
 					for i in range(4):
@@ -136,10 +137,10 @@ class NameServer:
 						md5.update(self.dataServers[i].buf)
 						md5_checksum = md5.digest()
 						if pre_checksum and pre_checksum != md5_checksum:
-							rasie ValueError, "error: unequal checksum for files from different dataServers. File got may be wrong."
+							raise ValueError("error: unequal checksum for files from different dataServers. File got may be wrong.")
 						pre_checksum = md5_checksum
 						self.dataServers[i].buf = ""
-			elif param[0] = "put":
+			elif param[0] == "put":
 				print("Upload success. The file ID is %d." % self.idCnt)
 			elif param[0] == "locate" or param[0] == "ls":
 				notFound = True

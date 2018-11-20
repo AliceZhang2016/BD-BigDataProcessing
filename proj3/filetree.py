@@ -38,13 +38,13 @@ class FileTree(object):
         else:
             return 0, parent, folder
 
-    def list(self, node, meta):
+    def listt(self, node, meta):
         chunkSize = 2 * 1024 * 1024
         if node == self.root:
             node.name = '/'
         print(node.name+'\t'+meta[node.name][0]+'\t'+int(meta[node.name][1]/chunkSize))
         for key in list(node.child.keys()):
-            list(node.child[key], meta)
+            listt(node.child[key], meta)
 
-    def list(self, meta):
-        self.list(self.root, meta)
+    def list_(self, meta):
+        self.listt(self.root, meta)

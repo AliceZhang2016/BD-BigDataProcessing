@@ -1,5 +1,5 @@
-import nameserver
-import dataserver
+from nameserver import NameServer
+from dataserver import DataServer
 
 numReplicate = 3
 

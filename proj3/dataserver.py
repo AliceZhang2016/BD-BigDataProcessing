@@ -17,7 +17,7 @@ class DataServer(Thread):
 
         self.cmd = "mkdir -p" + self.name
         self.size_ = 0
-        os.system(cmd)
+        os.system(self.cmd)
 
         self.fid = None
         self.bufSize = None
@@ -26,6 +26,7 @@ class DataServer(Thread):
 
     def run(self):
         while True:
+            self.cv.acquire()
             while (not self.finish):
                 self.cv.wait()
             if (self.cmd == "put"):
@@ -36,7 +37,8 @@ class DataServer(Thread):
             elif (self.cmd == "fetch"):
                 fetch()
             self.finish = True
-            cv.notify_all()
+            self.cv.release()
+            self.cv.notify_all()
 
 
     def put(self):

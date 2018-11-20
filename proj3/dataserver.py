@@ -1,11 +1,14 @@
 import threading
 import time
 import os
+from threading import Thread
 
 chunkSize = 2*1024*1024
 
-class DataServer():
+class DataServer(Thread):
     def __init__(self, name_):
+        Thread.__init__(self)
+        
         self.name_ = name_
         # buf is of type "bytes"
         self.buf = ""
@@ -21,7 +24,7 @@ class DataServer():
         self.offset = None
 
 
-    def operator(self):
+    def run(self):
         while True:
             while (not self.finish):
                 self.cv.wait()
@@ -47,7 +50,7 @@ class DataServer():
                 print("create file error in dataserver: (file name) "+filePath)
                 break
             else:
-                f = open(filePath, 'w')
+                f = open(filePath, 'wb')
                 f.write(buf[start : min(chunkSize, self.bufSize-start)])
                 start += chunkSize
                 f.close()
@@ -69,7 +72,7 @@ class DataServer():
                 self.bufSize = 0
                 break
             else:
-                f = open(filePath, 'r')
+                f = open(filePath, 'rb')
                 buf += f.read(min(chunkSize, self.bufSize-start))
                 start += chunkSize
 
@@ -82,7 +85,7 @@ class DataServer():
             self.buf = ""
             self.bufSize = 0
         else:
-            f = open(filePath, 'r')
+            f = open(filePath, 'rb')
             buf += f.read(min(chunkSize, self.bufSize - chunkSize*self.offset))
             self.bufSize = f.tell()
 

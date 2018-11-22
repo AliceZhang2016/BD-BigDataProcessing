@@ -21,7 +21,7 @@ def main():
     ds3.start()
     ds4.start()
 
-    print("===")
+    # print("===")
     ns.operator()
     '''
     print("?????")

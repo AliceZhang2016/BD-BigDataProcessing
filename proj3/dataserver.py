@@ -16,7 +16,7 @@ class DataServer(Thread):
         self.cv = threading.Condition()
 
         self.cmd = "mkdir " + self.name
-        self.size_ = 0
+        self.size = 0
         os.system(self.cmd)
 
         self.fid = None
@@ -25,19 +25,19 @@ class DataServer(Thread):
 
 
     def run(self):
-        print("----")
+        # print("----")
         while True:
             self.cv.acquire()
             if (self.finish):
                 self.cv.wait()
 
             if (self.cmd == "put"):
-                self.size_ += bufSize / 1024.0 / 1024.0
-                put()
+                self.size += self.bufSize / 1024.0 / 1024.0
+                self.put()
             elif (self.cmd == "read"):
-                read()
+                self.read()
             elif (self.cmd == "fetch"):
-                fetch()
+                self.fetch()
             self.finish = True
             
             #time.sleep(1)
@@ -49,7 +49,7 @@ class DataServer(Thread):
         global chunkSize
 
         start = 0
-        while (start < bufSize):
+        while (start < self.bufSize):
             offset = start / chunkSize
             filePath = self.name_ + "/" + str(self.fid) + " " + str(self.offset)
             if not os.path.exists(filePath):

@@ -58,22 +58,24 @@ class NameServer:
 					print("create file error \n. maybe the file : %s exists" % param[2])
 					continue
 				else:
-					totalSize = os.path.getsize(param[2])
-					f.seek(0, whence=1) # whence 0: current, 1: head, 2: tail
+					print("1")
+					totalSize = os.path.getsize(param[1])
+					f.seek(0, 1) # whence 0: current, 1: head, 2: tail
 					buf = f.read(totalSize)
 					serverSize = np.array([s.size for s in self.dataServers])
 					idx = np.argsort(serverSize)
 					self.idCnt += 1
-					for i in range(numReplicate):
+					for i in range(self.numReplicate):
 						self.dataServers[idx[i]].cv.acquire()
 						self.meta[param[2]] = (self.idCnt, totalSize)
 						self.dataServers[idx[i]].cmd = "put"
-						self.dataServers[idx[i]].fid = idCnt
+						self.dataServers[idx[i]].fid = self.idCnt
 						self.dataServers[idx[i]].bufSize = totalSize
 						self.dataServers[idx[i]].buf = buf
 						self.dataServers[idx[i]].finish = False
-						self.dataServers[idx[i]].cv.release()
 						self.dataServers[idx[i]].cv.notify_all()
+						self.dataServers[idx[i]].cv.release()
+					print("meta", self.meta.keys())
 				f.close()
 			# fetch file from miniDFS
 			elif param[0] == "read" or param[0] == "fetch":
@@ -93,8 +95,8 @@ class NameServer:
 						else:
 							self.dataServers[i].fid, self.dataServers[i].bufSize = int(param[1]), int(param[2])
 						self.dataServers[i].finish = False
-						self.dataServers[i].cv.release()
 						self.dataServers[i].cv.notify_all()
+						self.dataServers[i].cv.release()
 			# locate the data server given file ID and Offset.
 			elif param == "locate":
 				if l != 3:
@@ -118,8 +120,8 @@ class NameServer:
 				server.cv.acquire()
 				while not server.finish:
 					server.cv.wait()
-				server.cv.release()
 				server.cv.notify_all()
+				server.cv.release()
 
 
 			# work after processing of data server

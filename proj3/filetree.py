@@ -44,7 +44,9 @@ class FileTree(object):
         chunkSize = 2 * 1024 * 1024
         if node.name == self.root.name:
             node.name = '/'
-        print(node.name+'\t'+str(meta[node.name][0])+'\t'+str(int(meta[node.name][1]/chunkSize)))
+
+        print(node.name)
+        # print(node.name+'\t'+str(meta[node.name][0])+'\t'+str(int(meta[node.name][1]/chunkSize)))
         if node.name == self.root.name:
             node.name = ''
         for key in list(node.child.keys()):

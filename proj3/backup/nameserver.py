@@ -44,27 +44,6 @@ class NameServer:
 					print("file\tFileID\tChunkNumber")
 					self.fileTree.list_(self.meta)
 				continue
-			# make new directory
-			elif param[0] == "mkdir":
-				if l != 1:
-					print("usage: mkdir (make new directory)")
-				if self.fileTree.insert_node(param[2], False):
-					print("create directory error \n. maybe the directory : %s exists" % param[2])
-				continue
-			# list all the files in current folder.
-			elif param[0] == "ls":
-				if l != 1:
-					print("usage: ls")
-				else:
-					self.fileTree.ls_()
-				continue
-			# enter a folder.
-			elif param[0] == "cd":
-				if l != 2:
-					print("usage: cd foldername")
-				else:
-					self.fileTree.cd_(param[1])
-				continue
 			# upload file to miniDFS
 			elif param[0] == "put":
 				if l != 3:
@@ -79,7 +58,6 @@ class NameServer:
 					print("create file error \n. maybe the file : %s exists" % param[2])
 					continue
 				else:
-					whole_path = self.fileTree.get_whole_path_(param[2])
 					totalSize = os.path.getsize(param[1])
 					f.seek(0, 1) # whence 0: current, 1: head, 2: tail
 					buf = f.read(totalSize)
@@ -88,7 +66,7 @@ class NameServer:
 					self.idCnt += 1
 					for i in range(self.numReplicate):
 						self.dataServers[idx[i]].cv.acquire()
-						self.meta[whole_path] = (self.idCnt, totalSize)
+						self.meta[param[2]] = (self.idCnt, totalSize)
 						self.dataServers[idx[i]].cmd = "put"
 						self.dataServers[idx[i]].fid = self.idCnt
 						self.dataServers[idx[i]].bufSize = totalSize
@@ -104,16 +82,14 @@ class NameServer:
 					print("usage: fetch FileID Offset dest_file_path")
 					continue
 				else:
-					if param[0] == "read":
-						whole_path = self.fileTree.get_whole_path_(param[1])
-					 	if whole_path not in self.meta:
-							print("error: no such file in miniDFS.")
-							continue
+					if param[0] == "read" and param[1] not in self.meta:
+						print("error: no such file in miniDFS.")
+						continue
 					for i in range(4):
 						self.dataServers[i].cv.acquire()
 						self.dataServers[i].cmd = param[0]
 						if param[0] == "read":
-							self.dataServers[i].fid, self.dataServers[i].bufSize = meta[whole_path]
+							self.dataServers[i].fid, self.dataServers[i].bufSize = meta[param[1]]
 						else:
 							self.dataServers[i].fid, self.dataServers[i].bufSize = int(param[1]), int(param[2])
 						self.dataServers[i].finish = False
@@ -147,7 +123,7 @@ class NameServer:
 
 
 			# work after processing of data server
-			if param[0] == "read" or param[0] == "fetch":
+			if param[0] == "read" or param == "fetch":
 				md5 = hashlib.md5()
 				pre_checksum = ""
 				for i in range(4):
@@ -172,7 +148,7 @@ class NameServer:
 						self.dataServers[i].buf = ""
 			elif param[0] == "put":
 				print("Upload success. The file ID is %d." % self.idCnt)
-			elif param[0] == "locate" or param[0] == "list":
+			elif param[0] == "locate" or param[0] == "ls":
 				notFound = True
 				for i in range(4):
 					if self.dataServers[i].bufSize:

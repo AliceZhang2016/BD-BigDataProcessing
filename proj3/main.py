@@ -21,12 +21,15 @@ def main():
     ds3.start()
     ds4.start()
 
+    print("===")
+    ns.operator()
+    '''
+    print("?????")
     ds1.join()
     ds2.join()
     ds3.join()
     ds4.join()
-
-    ns.operator()
+    '''
 
     return 0
 

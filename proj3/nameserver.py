@@ -65,6 +65,22 @@ class NameServer:
 				else:
 					self.fileTree.cd_(param[1])
 				continue
+			# remove a file.
+			elif param[0] == "rm":
+				if l != 2:
+					print("usage: rm filername")
+				else:
+					self.fileTree.rm_(param[1])
+					whole_path = self.fileTree.get_whole_path_(param[2])
+					for i in range(4):
+						self.dataServers[i].cv.acquire()
+						self.dataServers[i].cmd = param[0]
+						self.dataServers[i].fid, self.dataServers[i].bufSize = meta[whole_path]
+						self.dataServers[i].finish = False
+						self.dataServers[i].cv.notify_all()
+						self.dataServers[i].cv.release()
+					del meta[whole_path]
+				continue
 			# upload file to miniDFS
 			elif param[0] == "put":
 				if l != 3:

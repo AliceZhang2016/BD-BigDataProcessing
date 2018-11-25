@@ -96,3 +96,31 @@ class FileTree(object):
             path = path + '/'
             path = path + folder
         return path+'/'+filename
+
+    def rm_(self, path):
+        isFound, cur, folder = self.find_node_rm(path)
+        if isFound == 1:
+            print("Wrong path!")
+            return
+        elif isFound == 0:
+            del cur.child[folder]
+            return
+
+    def find_node_rm(self, path):
+        path_folder = path.split('/')
+        cur = self.cur_node
+        for folder in path_folder:
+            if folder == '..':
+                cur = cur.parent
+                continue
+            elif folder == '.':
+                continue
+            elif folder == '':
+                print('Wrong path!')
+                return 1, None, None
+            parent = cur
+            cur = cur.child.get(folder)
+            if cur is None:
+                return 1, None, None
+            else:
+                return 0, parent, folder

@@ -68,18 +68,18 @@ class NameServer:
 			# remove a file.
 			elif param[0] == "rm":
 				if l != 2:
-					print("usage: rm filername")
+					print("usage: rm filename")
 				else:
 					self.fileTree.rm_(param[1])
 					whole_path = self.fileTree.get_whole_path_(param[2])
 					for i in range(4):
 						self.dataServers[i].cv.acquire()
 						self.dataServers[i].cmd = param[0]
-						self.dataServers[i].fid, self.dataServers[i].bufSize = meta[whole_path]
+						self.dataServers[i].fid, self.dataServers[i].bufSize = self.meta[whole_path]
 						self.dataServers[i].finish = False
 						self.dataServers[i].cv.notify_all()
 						self.dataServers[i].cv.release()
-					del meta[whole_path]
+					del self.meta[whole_path]
 				continue
 			# upload file to miniDFS
 			elif param[0] == "put":
@@ -122,16 +122,16 @@ class NameServer:
 				else:
 					if param[0] == "read":
 						whole_path = self.fileTree.get_whole_path_(param[1])
-					 	if whole_path not in self.meta:
+						if whole_path not in self.meta:
 							print("error: no such file in miniDFS.")
 							continue
 					for i in range(4):
 						self.dataServers[i].cv.acquire()
 						self.dataServers[i].cmd = param[0]
 						if param[0] == "read":
-							self.dataServers[i].fid, self.dataServers[i].bufSize = meta[whole_path]
+							self.dataServers[i].fid, self.dataServers[i].bufSize = self.meta[whole_path]
 						else:
-							self.dataServers[i].fid, self.dataServers[i].bufSize = int(param[1]), int(param[2])
+							self.dataServers[i].fid, self.dataServers[i].offset = int(param[1]), int(param[2])
 						self.dataServers[i].finish = False
 						self.dataServers[i].cv.notify_all()
 						self.dataServers[i].cv.release()
@@ -196,24 +196,4 @@ class NameServer:
 						print("found FileID %s offset %s at %s." % (param[1], param[2], self.dataServers[i].get_name()))
 				if notFound:
 					print("not found FileID %s offset %s." % (param[1], param[2]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

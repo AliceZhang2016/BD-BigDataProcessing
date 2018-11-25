@@ -15,7 +15,7 @@ class DataServer(Thread):
         self.finish = True
         self.cv = threading.Condition()
 
-        self.cmd = "mkdir " + self.name
+        self.cmd = "mkdir -p " + self.name_
         self.size = 0
         os.system(self.cmd)
 
@@ -50,14 +50,14 @@ class DataServer(Thread):
 
         start = 0
         while (start < self.bufSize):
-            offset = start / chunkSize
-            filePath = self.name_ + "/" + str(self.fid) + " " + str(self.offset)
-            if not os.path.exists(filePath):
+            offset = int(start / chunkSize)
+            filePath = self.name_ + "/" + str(self.fid) + "_" + str(offset)
+            if not filePath:
                 print("create file error in dataserver: (file name) "+filePath)
                 break
             else:
                 f = open(filePath, 'wb')
-                f.write(buf[start : min(chunkSize, self.bufSize-start)])
+                f.write(self.buf[start : min(chunkSize, self.bufSize-start)])
                 start += chunkSize
                 f.close()
 
@@ -68,10 +68,12 @@ class DataServer(Thread):
 
         start = 0
 
-        buf = ""
+        self.buf = ""
         while (start < self.bufSize):
-            offset = start / chunkSize
-            filePath = self.name_ + "/" + str(self.fid) + " " + str(self.offset)
+            self.offset = int(start / chunkSize)
+            print("---",self.offset)
+            filePath = self.name_ + "/" + str(self.fid) + "_" + str(self.offset)
+            print("===",self.offset)
 
             if not os.path.exists(filePath):
                 self.buf = ""
@@ -79,7 +81,7 @@ class DataServer(Thread):
                 break
             else:
                 f = open(filePath, 'rb')
-                buf += f.read(min(chunkSize, self.bufSize-start))
+                self.buf += f.read(min(chunkSize, self.bufSize-start))
                 start += chunkSize
 
 
@@ -97,7 +99,7 @@ class DataServer(Thread):
 
 
     def locate(self):
-        filePath = selfname_ + "/" + str(self.fid) + " " + str(self.offset)
+        filePath = selfname_ + "/" + str(self.fid) + "_" + str(self.offset)
         if not os.path.exists(filePath):
             self.bufSize = 1
         else:

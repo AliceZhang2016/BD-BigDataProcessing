@@ -164,7 +164,6 @@ class NameServer:
 
             # work after processing of data server
             if param[0] == "read" or param[0] == "fetch":
-                md5 = hashlib.md5()
                 pre_checksum = ""
                 for i in range(4):
                     if self.dataServers[i].bufSize:
@@ -180,9 +179,12 @@ class NameServer:
                                 print("create file failed. maybe wrong directory.")
                         f.write(self.dataServers[i].buf)
                         f.close()
+                        md5 = hashlib.md5()
                         md5.update(self.dataServers[i].buf)
                         md5_checksum = md5.digest()
                         if pre_checksum and pre_checksum != md5_checksum:
+                            print("pre_checksum",pre_checksum)
+                            print("md5_checksum",md5_checksum)
                             raise ValueError("error: unequal checksum for files from different dataServers. File got may be wrong.")
                         pre_checksum = md5_checksum
                         self.dataServers[i].buf = ""

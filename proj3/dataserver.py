@@ -80,22 +80,22 @@ class DataServer(Thread):
                 f = open(filePath, 'r')
                 self.buf += f.read(min(chunkSize, self.bufSize-start))
                 start += chunkSize
-        print(self.name_ + " buf before: ", self.buf)
+        # print(self.name_ + " buf before: ", self.buf)
         self.buf = bytes(self.buf, encoding='utf-8')
-        print(self.name_ + " buf after: ",self.buf)
+        # print(self.name_ + " buf after: ",self.buf)
 
 
     def fetch(self):
         global chunkSize
         filePath = self.name_ + "/" + str(self.fid) + "_" + str(self.offset)
 
-        print(filePath)
+        # print(filePath)
         if not os.path.exists(filePath):
             print(self.name_ + "not exists")
             self.buf = ""
             self.bufSize = 0
         else:
-            print(self.name_ + "exits")
+            # print(self.name_ + "exits")
             f = open(filePath, 'rb')
             self.buf += f.read(min(chunkSize, self.bufSize - chunkSize*self.offset))
             self.bufSize = f.tell()

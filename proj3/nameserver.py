@@ -136,7 +136,7 @@ class NameServer:
                         self.dataServers[i].cv.notify_all()
                         self.dataServers[i].cv.release()
             # locate the data server given file ID and Offset.
-            elif param == "locate":
+            elif param[0] == "locate":
                 if l != 3:
                     print("usage: locate fileID Offset")
                     continue
@@ -147,8 +147,8 @@ class NameServer:
                         self.dataServers[i].fid = int(param[1])
                         self.dataServers[i].offset = int(param[2])
                         self.dataServers[i].finish = False
-                        self.dataServers[i].cv.release()
                         self.dataServers[i].cv.notify_all()
+                        self.dataServers[i].cv.release()
             else:
                 print("wrong command.")
 
@@ -167,22 +167,31 @@ class NameServer:
                 pre_checksum = ""
                 for i in range(4):
                     if self.dataServers[i].bufSize:
+                        buf = self.dataServers[i].buf
                         if param[0] == "read":
                             try:
-                                f = open(param[2], 'wb')
+                                print("read")
+                                file_path = param[2]
                             except IOError:
                                 print("create file failed. maybe wrong directory.")
                         elif param[0] == "fetch":
                             try:
-                                f = open(param[3], 'wb')
+                                print("fetch")
+                                file_path = param[3]
                             except IOError:
                                 print("create file failed. maybe wrong directory.")
-                        f.write(self.dataServers[i].buf)
-                        f.close()
+                        if not os.path.exists(file_path):
+                            # print("buf", buf)
+                            f = open(file_path, 'wb')
+                            f.write(buf)
+                            f.close()
+                        # print("self.dataServers[i].buf", self.dataServers[i].buf)
                         md5 = hashlib.md5()
                         md5.update(self.dataServers[i].buf)
                         md5_checksum = md5.digest()
-                        if pre_checksum and pre_checksum != md5_checksum:
+                        print("pre_checksum",pre_checksum)
+                        print("md5_checksum",md5_checksum)
+                        if pre_checksum != "" and pre_checksum != md5_checksum:
                             print("pre_checksum",pre_checksum)
                             print("md5_checksum",md5_checksum)
                             raise ValueError("error: unequal checksum for files from different dataServers. File got may be wrong.")

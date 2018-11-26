@@ -11,7 +11,7 @@ class DataServer(Thread):
         
         self.name_ = name_
         # buf is of type "bytes"
-        self.buf = ""
+        self.buf = bytes("",encoding='utf-8')
         self.finish = True
         self.cv = threading.Condition()
 
@@ -67,38 +67,39 @@ class DataServer(Thread):
 
         start = 0
 
-        self.buf = ""
+        self.buf = bytes("",encoding='utf-8')
         while (start < self.bufSize):
             self.offset = int(start / chunkSize)
             filePath = self.name_ + "/" + str(self.fid) + "_" + str(self.offset)
 
             if not os.path.exists(filePath):
-                self.buf = ""
+                self.buf = bytes("",encoding='utf-8')
                 self.bufSize = 0
                 break
             else:
-                f = open(filePath, 'r')
+                f = open(filePath, 'rb')
                 self.buf += f.read(min(chunkSize, self.bufSize-start))
                 start += chunkSize
-        # print(self.name_ + " buf before: ", self.buf)
-        self.buf = bytes(self.buf, encoding='utf-8')
-        # print(self.name_ + " buf after: ",self.buf)
+        #print(self.name_ + " buf before: ", self.buf)
+        #self.buf = bytes(self.buf, encoding='utf-8')
+        #print(self.name_ + " buf after: ",self.buf)
 
 
     def fetch(self):
         global chunkSize
         filePath = self.name_ + "/" + str(self.fid) + "_" + str(self.offset)
 
-        # print(filePath)
+        #print(filePath)
         if not os.path.exists(filePath):
-            print(self.name_ + "not exists")
-            self.buf = ""
+            #print(self.name_ + "not exists")
+            self.buf = bytes("",encoding='utf-8')
             self.bufSize = 0
         else:
-            # print(self.name_ + "exits")
+            #print(self.name_ + "exits")
             f = open(filePath, 'rb')
             self.buf += f.read(min(chunkSize, self.bufSize - chunkSize*self.offset))
             self.bufSize = f.tell()
+        #self.buf = bytes(self.buf, encoding='utf-8')
 
 
     def locate(self):

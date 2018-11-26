@@ -38,6 +38,8 @@ class DataServer(Thread):
                 self.read()
             elif (self.cmd == "fetch"):
                 self.fetch()
+            elif (self.cmd == "rm"):
+                self.rm()
             self.finish = True
             
             #time.sleep(1)
@@ -103,7 +105,7 @@ class DataServer(Thread):
 
 
     def locate(self):
-        filePath = selfname_ + "/" + str(self.fid) + "_" + str(self.offset)
+        filePath = self.name_ + "/" + str(self.fid) + "_" + str(self.offset)
         if not os.path.exists(filePath):
             self.bufSize = 1
         else:
@@ -113,17 +115,17 @@ class DataServer(Thread):
     def rm(self):
         global chunkSize
         start = 0
-        self.buf = ""
+        self.buf = bytes("",encoding='utf-8')
         while (start < self.bufSize):
             self.offset = int(start / chunkSize)
             filePath = self.name_ + "/" + str(self.fid) + "_" + str(self.offset)
-
+            #print(filePath)
             if not os.path.exists(filePath):
-                self.buf = ""
-                self.bufSize = 0
+                #print("NOT EXIST: "+filePath)
                 break
             else:
-                self.cmd = "rm filePath"
+                #print(filePath)
+                self.cmd = "rm " + filePath
                 os.system(self.cmd)
 
 

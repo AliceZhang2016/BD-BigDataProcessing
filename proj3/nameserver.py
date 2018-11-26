@@ -187,7 +187,7 @@ class NameServer:
                             print("md5_checksum",md5_checksum)
                             raise ValueError("error: unequal checksum for files from different dataServers. File got may be wrong.")
                         pre_checksum = md5_checksum
-                        self.dataServers[i].buf = ""
+                        self.dataServers[i].buf = bytes("",encoding='utf-8')
             elif param[0] == "put":
                 print("Upload success. The file ID is %d." % self.idCnt)
             elif param[0] == "locate" or param[0] == "list":

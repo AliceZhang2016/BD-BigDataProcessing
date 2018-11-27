@@ -69,6 +69,13 @@ class NameServer:
                 else:
                     self.fileTree.cd_(param[1])
                 continue
+            # get the current directory
+            elif param[0] == "pwd":
+                if l != 1:
+                    print("usage: pwd")
+                else:
+                    print(self.fileTree.get_whole_path_(""))
+                continue
             # remove a file.
             elif param[0] == "rm":
                 if l != 2:
@@ -95,7 +102,7 @@ class NameServer:
                 except IOError:
                     print("open file error: file %s" % param[1])
                     continue
-                if self.fileTree.insert_node(param[2], True):
+                if self.fileTree.insert_node(param[2], True) != 0:
                     print("create file error \n. maybe the file : %s exists" % param[2])
                     continue
                 else:

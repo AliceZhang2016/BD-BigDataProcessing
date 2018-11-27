@@ -28,9 +28,9 @@ class DataServer(Thread):
         # print("----")
         while True:
             self.cv.acquire()
-            if (self.finish):
+            while (self.finish):
                 self.cv.wait()
-            print("cmd",self.cmd)
+            #print("cmd",self.cmd)
             if (self.cmd == "put"):
                 self.size += self.bufSize / 1024.0 / 1024.0
                 self.put()
@@ -38,7 +38,10 @@ class DataServer(Thread):
                 self.read()
             elif (self.cmd == "fetch"):
                 self.fetch()
+            elif (self.cmd == "locate"):
+            	self.locate()
             elif (self.cmd == "rm"):
+                self.size += self.bufSize / 1024.0 / 1024.0
                 self.rm()
             self.finish = True
             
@@ -49,9 +52,11 @@ class DataServer(Thread):
 
     def put(self):
         global chunkSize
-        print("enter node", self.name_)
+        # print("enter node", self.name_)
         start = 0
         total = 0
+        # print(self.bufSize)
+        # print(len(self.buf))
         while (start < self.bufSize):
             total+=1
             offset = int(start / chunkSize)
@@ -61,9 +66,9 @@ class DataServer(Thread):
                 break
             else:
                 f = open(filePath, 'wb')
-                print(self.name_+" dataserver buf: "+str(total)+' ',self.buf)
-                f.write(self.buf[start : min(chunkSize, self.bufSize-start)])
+                f.write(self.buf[start : min(start+chunkSize, self.bufSize)])
                 start += chunkSize
+                # print(self.name_+" dataserver buf: "+str(start)+' '+str(self.bufSize))
                 f.close()
         self.buf = bytes("",encoding='utf-8')
 
@@ -98,15 +103,15 @@ class DataServer(Thread):
         self.buf = bytes("",encoding='utf-8')
 
         if not os.path.exists(filePath):
-            print(self.name_ + "not exists")
+            #print(self.name_ + "not exists")
             self.buf = bytes("",encoding='utf-8')
             self.bufSize = 0
         else:
             #print(self.name_ + "exits")
             f = open(filePath, 'rb')
-            print("filepath", filePath)
+            #print("filepath", filePath)
             self.buf = f.read(min(chunkSize, self.bufSize - chunkSize*self.offset))
-            print("dataserver fetch", self.buf, self.bufSize, self.offset)
+            #print("dataserver fetch", self.buf, self.bufSize, self.offset)
             self.bufSize = f.tell()
         #self.buf = bytes(self.buf, encoding='utf-8')
 
@@ -114,9 +119,11 @@ class DataServer(Thread):
     def locate(self):
         filePath = self.name_ + "/" + str(self.fid) + "_" + str(self.offset)
         if not os.path.exists(filePath):
-            self.bufSize = 1
-        else:
+            # print(self.name_+"not exist")
             self.bufSize = 0
+        else:
+            # print(self.name_+"found")
+            self.bufSize = 1
 
 
     def rm(self):

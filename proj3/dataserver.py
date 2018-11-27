@@ -30,7 +30,7 @@ class DataServer(Thread):
             self.cv.acquire()
             if (self.finish):
                 self.cv.wait()
-
+            print("cmd",self.cmd)
             if (self.cmd == "put"):
                 self.size += self.bufSize / 1024.0 / 1024.0
                 self.put()
@@ -49,9 +49,11 @@ class DataServer(Thread):
 
     def put(self):
         global chunkSize
-
+        print("enter node", self.name_)
         start = 0
+        total = 0
         while (start < self.bufSize):
+            total+=1
             offset = int(start / chunkSize)
             filePath = self.name_ + "/" + str(self.fid) + "_" + str(offset)
             if not filePath:
@@ -59,9 +61,11 @@ class DataServer(Thread):
                 break
             else:
                 f = open(filePath, 'wb')
+                print(self.name_+" dataserver buf: "+str(total)+' ',self.buf)
                 f.write(self.buf[start : min(chunkSize, self.bufSize-start)])
                 start += chunkSize
                 f.close()
+        self.buf = bytes("",encoding='utf-8')
 
 
     def read(self):
@@ -90,16 +94,19 @@ class DataServer(Thread):
     def fetch(self):
         global chunkSize
         filePath = self.name_ + "/" + str(self.fid) + "_" + str(self.offset)
-
         #print(filePath)
+        self.buf = bytes("",encoding='utf-8')
+
         if not os.path.exists(filePath):
-            #print(self.name_ + "not exists")
+            print(self.name_ + "not exists")
             self.buf = bytes("",encoding='utf-8')
             self.bufSize = 0
         else:
             #print(self.name_ + "exits")
             f = open(filePath, 'rb')
-            self.buf += f.read(min(chunkSize, self.bufSize - chunkSize*self.offset))
+            print("filepath", filePath)
+            self.buf = f.read(min(chunkSize, self.bufSize - chunkSize*self.offset))
+            print("dataserver fetch", self.buf, self.bufSize, self.offset)
             self.bufSize = f.tell()
         #self.buf = bytes(self.buf, encoding='utf-8')
 

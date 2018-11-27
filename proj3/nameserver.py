@@ -103,11 +103,14 @@ class NameServer:
                     idx = np.argsort(serverSize)
                     self.idCnt += 1
                     for i in range(self.numReplicate):
+                        print("put in node %d" % (i+1))
                         self.dataServers[idx[i]].cv.acquire()
                         self.meta[whole_path] = (self.idCnt, totalSize)
                         self.dataServers[idx[i]].cmd = "put"
                         self.dataServers[idx[i]].fid = self.idCnt
+                        print("nameserver totalSize", totalSize)
                         self.dataServers[idx[i]].bufSize = totalSize
+                        print("nameserver buf", buf)
                         self.dataServers[idx[i]].buf = buf
                         self.dataServers[idx[i]].finish = False
                         self.dataServers[idx[i]].cv.notify_all()
@@ -181,7 +184,7 @@ class NameServer:
                             except IOError:
                                 print("create file failed. maybe wrong directory.")
                         if not os.path.exists(file_path):
-                            # print("buf", buf)
+                            print("buf", buf)
                             f = open(file_path, 'wb')
                             f.write(buf)
                             f.close()

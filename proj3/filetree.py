@@ -14,8 +14,8 @@ class FileTree(object):
         path_folder = path.split('/')
         isFound, cur, folder = self.find_node(path)
         if isFound == 2:
-            print("Wrong path!")
-            return 3
+            print("Path doesn't exist!")
+            return 1
         elif isFound == 1:
             print("File already exists")
             return 2

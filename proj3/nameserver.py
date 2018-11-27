@@ -46,10 +46,10 @@ class NameServer:
                 continue
             # make new directory
             elif param[0] == "mkdir":
-                if l != 1:
+                if l != 2:
                     print("usage: mkdir (make new directory)")
-                if self.fileTree.insert_node(param[2], False):
-                    print("create directory error \n. maybe the directory : %s exists" % param[2])
+                if self.fileTree.insert_node(param[1], False):
+                    print("create directory error \n. maybe the directory : %s exists" % param[1])
                 continue
             # list all the files in current folder.
             elif param[0] == "ls":
@@ -103,14 +103,14 @@ class NameServer:
                     idx = np.argsort(serverSize)
                     self.idCnt += 1
                     for i in range(self.numReplicate):
-                        print("put in node %d" % (i+1))
+                        # print("put in node %d" % (i+1))
                         self.dataServers[idx[i]].cv.acquire()
                         self.meta[whole_path] = (self.idCnt, totalSize)
                         self.dataServers[idx[i]].cmd = "put"
                         self.dataServers[idx[i]].fid = self.idCnt
-                        print("nameserver totalSize", totalSize)
+                        # print("nameserver totalSize", totalSize)
                         self.dataServers[idx[i]].bufSize = totalSize
-                        print("nameserver buf", buf)
+                        # print("nameserver buf", buf)
                         self.dataServers[idx[i]].buf = buf
                         self.dataServers[idx[i]].finish = False
                         self.dataServers[idx[i]].cv.notify_all()
@@ -173,18 +173,18 @@ class NameServer:
                         buf = self.dataServers[i].buf
                         if param[0] == "read":
                             try:
-                                print("read")
+                                # print("read")
                                 file_path = param[2]
                             except IOError:
                                 print("create file failed. maybe wrong directory.")
                         elif param[0] == "fetch":
                             try:
-                                print("fetch")
+                                # print("fetch")
                                 file_path = param[3]
                             except IOError:
                                 print("create file failed. maybe wrong directory.")
                         if not os.path.exists(file_path):
-                            print("buf", buf)
+                            # print("buf", buf)
                             f = open(file_path, 'wb')
                             f.write(buf)
                             f.close()
@@ -192,11 +192,11 @@ class NameServer:
                         md5 = hashlib.md5()
                         md5.update(self.dataServers[i].buf)
                         md5_checksum = md5.digest()
-                        print("pre_checksum",pre_checksum)
-                        print("md5_checksum",md5_checksum)
+                        # print("pre_checksum",pre_checksum)
+                        # print("md5_checksum",md5_checksum)
                         if pre_checksum != "" and pre_checksum != md5_checksum:
-                            print("pre_checksum",pre_checksum)
-                            print("md5_checksum",md5_checksum)
+                            # print("pre_checksum",pre_checksum)
+                            # print("md5_checksum",md5_checksum)
                             raise ValueError("error: unequal checksum for files from different dataServers. File got may be wrong.")
                         pre_checksum = md5_checksum
                         self.dataServers[i].buf = bytes("",encoding='utf-8')

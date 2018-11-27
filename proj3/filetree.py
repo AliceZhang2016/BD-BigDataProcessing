@@ -15,10 +15,10 @@ class FileTree(object):
         isFound, cur, folder = self.find_node(path)
         if isFound == 2:
             print("Wrong path!")
-            return 1
+            return 3
         elif isFound == 1:
             print("File already exists")
-            return 1
+            return 2
         else:
             if len(path_folder) is not 1:
                 if cur.name is not path_folder[-2]:

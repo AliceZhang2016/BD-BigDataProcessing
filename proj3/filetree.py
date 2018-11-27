@@ -11,6 +11,7 @@ class FileTree(object):
         self.cur_node = self.root
 
     def insert_node(self, path, isFile):
+        path_folder = path.split('/')
         isFound, cur, folder = self.find_node(path)
         if isFound == 2:
             print("Wrong path!")
@@ -19,6 +20,10 @@ class FileTree(object):
             print("File already exists")
             return 1
         else:
+            if len(path_folder) is not 1:
+                if cur.name is not path_folder[-2]:
+                    print("Path doesn't exist!")
+                    return 1
             new = TreeNode(folder, isFile)
             new.parent = cur
             cur.child[folder] = new

@@ -34,8 +34,12 @@ class NameServer:
                 continue
 
             if param[0] == "quit" or param[0] == "exit":
-                print("quit")
-                break
+                if l != 1:
+                    print("usage: quit / exit")
+                else:
+                    print(param[0])
+                    break
+                continue
             # list all the files in name server.
             elif param[0] == "list":
                 if l != 1:
@@ -173,30 +177,22 @@ class NameServer:
                         buf = self.dataServers[i].buf
                         if param[0] == "read":
                             try:
-                                # print("read")
                                 file_path = param[2]
                             except IOError:
                                 print("create file failed. maybe wrong directory.")
                         elif param[0] == "fetch":
                             try:
-                                # print("fetch")
                                 file_path = param[3]
                             except IOError:
                                 print("create file failed. maybe wrong directory.")
                         if not os.path.exists(file_path):
-                            # print("buf", buf)
                             f = open(file_path, 'wb')
                             f.write(buf)
                             f.close()
-                        # print("self.dataServers[i].buf", self.dataServers[i].buf)
                         md5 = hashlib.md5()
                         md5.update(self.dataServers[i].buf)
                         md5_checksum = md5.digest()
-                        # print("pre_checksum",pre_checksum)
-                        # print("md5_checksum",md5_checksum)
                         if pre_checksum != "" and pre_checksum != md5_checksum:
-                            # print("pre_checksum",pre_checksum)
-                            # print("md5_checksum",md5_checksum)
                             raise ValueError("error: unequal checksum for files from different dataServers. File got may be wrong.")
                         pre_checksum = md5_checksum
                         self.dataServers[i].buf = bytes("",encoding='utf-8')

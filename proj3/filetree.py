@@ -22,7 +22,7 @@ class FileTree(object):
             return 1
         else:
             if len(path_folder) is not 1:
-                if cur.name is not path_folder[-2]:
+                if cur.name != path_folder[-2]:
                     print("Path doesn't exist!")
                     return 2
             new = TreeNode(folder, isFile)
